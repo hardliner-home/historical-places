@@ -1,7 +1,7 @@
 import 'react-native-gesture-handler';
 
 import React, { useEffect, useState } from 'react';
-
+import axios from 'axios'
 import { StyleSheet, View, Text, Alert, Button } from 'react-native';
 import AsyncStorage from '@react-native-community/async-storage';
 import map from 'lodash/map'
@@ -26,70 +26,91 @@ const styles = StyleSheet.create({
   }
 });
 
-const ListScreen = ({navigation}) => {
+const ListScreen = ({ navigation }) => {
 
-  const [accessToken, setAccessToken] = useState(null)
-  const { list, setList } = useListContent()
+    const [accessToken, setAccessToken] = useState(null)
+    const { list, setList } = useListContent()
 
-  const deleteItem = (item) => {
-    setList(without(list, item))
-    Alert.alert('Deleted')
-  }
-
-  const goTo = (item) => {
-    navigation.navigate('Details', {
-      place: item
-    })
-  }
-
-  useEffect(() => {
-    console.log('list', list)
-    AsyncStorage.getItem('accessToken')
-      .then((jsonAccessToken) => {
-        const token = JSON.parse(jsonAccessToken)
-        if (token) {
-          setAccessToken(token)
-        } else {
-          Alert.alert('You are not authorized')
+    const deleteItem = (item) => {
+      axios.post('https://diplom-backend.herokuapp.com/api/user/deleteUserItem', { item, accessToken }, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`
         }
       })
-      .catch((error) => {
-        Alert.alert('Error', error)
-      })
-  }, [list])
+        .then(() => {
+          setList(without(list, item))
+          Alert.alert('Deleted')
+        })
+        .catch(error => {
+          Alert.alert('Error', error.message)
+        })
+    }
 
-  return (
-    <View>
-      <Text style={{ fontSize: 20, marginLeft: 25, marginTop: 25, marginRight: 25 }}>
-        There are your list here
-      </Text>
-      {accessToken && (
-        <View style={styles.container}>
-          {
-            map(list, (item, key) => {
-              return (
-                <View
-                  style={styles.listItem}
-                  key={key}
-                >
-                  <Text style={{marginLeft: 10, width: '60%'}}>{truncate(item.locationName, {'length': 29})}</Text>
-                  <Button
-                    title='Go to'
-                    onPress={() => goTo(item)}
-                  />
-                  <Button
-                    title='delete'
-                    color="red"
-                    onPress={() => deleteItem(item)}
-                  />
-                </View>
-              )
-            })
+    const goTo = (item) => {
+      axios.post('https://diplom-backend.herokuapp.com/api/user/deleteUserItem', { item }, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`
+        }
+      })
+        .then(() => {
+          navigation.navigate('Details', {
+            place: item
+          })
+        })
+        .catch(error => {
+          Alert.alert('Error', error.message)
+        })
+    }
+
+    useEffect(() => {
+      console.log('list', list)
+      AsyncStorage.getItem('accessToken')
+        .then((jsonAccessToken) => {
+          const token = JSON.parse(jsonAccessToken)
+          if (token) {
+            setAccessToken(token)
+          } else {
+            Alert.alert('You are not authorized')
           }
-        </View>
-      )}
-    </View>
-  );
-};
+        })
+        .catch((error) => {
+          Alert.alert('Error', error)
+        })
+    }, [list])
+
+    return (
+      <View>
+        <Text style={{ fontSize: 20, marginLeft: 25, marginTop: 25, marginRight: 25 }}>
+          There are your list here
+        </Text>
+        {accessToken && (
+          <View style={styles.container}>
+            {
+              map(list, (item, key) => {
+                return (
+                  <View
+                    style={styles.listItem}
+                    key={key}
+                  >
+                    <Text style={{ marginLeft: 10, width: '60%' }}>{truncate(item.locationName, { 'length': 29 })}</Text>
+                    <Button
+                      title='Go to'
+                      onPress={() => goTo(item)}
+                    />
+                    <Button
+                      title='delete'
+                      color="red"
+                      onPress={() => deleteItem(item)}
+                    />
+                  </View>
+                )
+              })
+            }
+          </View>
+        )}
+      </View>
+    );
+  }
+;
 
 export default React.memo(ListScreen);

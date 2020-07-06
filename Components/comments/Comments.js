@@ -8,10 +8,8 @@ import { Rating } from 'react-native-ratings';
 import star from "../../assets/icons/details/star.png"
 import axios from 'axios'
 import AsyncStorage from '@react-native-community/async-storage';
-// import Auth0 from 'react-native-auth0';
 
 const credentials = require('../../app/auth0-configuration');
-// const auth0 = new Auth0(credentials);
 
 const Comments = ({buttonStyle, textStyle, placeId}) => {
 
@@ -42,49 +40,24 @@ const Comments = ({buttonStyle, textStyle, placeId}) => {
             commentText: commentInput,
             id: placeId,
             rating: starRating ,
-
-            // addings
-            User: {
-                nickName: "Vladimir Shabanov",
-                picture: 'https://lh3.googleusercontent.com/ogw/ADGmqu_Bnl1o02YdaFIAHPNGUjOTgEz-f4w95KXeLDSL=s192-c-mo',
-            },
-
         }
 
-        // console.log(allComments[0])
-        setAllComments(concat(allComments, data))
-        setReviewed(true)
-
-        // axios.post('https://diplom-backend.herokuapp.com/api/places/addComment', { data }, {
-        //     headers: {
-        //         // Authorization: `Bearer 6lPSd09bP45KuLqRXUJ6-P0TZfJSPSs1`
-        //         Authorization: `Bearer ${accessToken}`
-        //     }
-        // })
-        //     .then(() => {
-        //         Alert.alert('Success')
-        //     })
-        //     .catch(error => {
-        //         Alert.alert('Error', error.message)
-        //     })
+        axios.post('https://diplom-backend.herokuapp.com/api/places/addComment', { data }, {
+            headers: {
+                Authorization: `Bearer ${accessToken}`
+            }
+        })
+            .then(() => {
+                setAllComments(concat(allComments, data))
+                setReviewed(true)
+                Alert.alert('Success')
+            })
+            .catch(error => {
+                Alert.alert('Error', error.message)
+            })
     }
 
     const commentPress = () => {
-
-        // auth0.webAuth
-        // .authorize({})
-        // .then(credentials => {
-        //     if (credentials.accessToken) {
-        //         setCommentStatus(true)
-        //         setAccessToken(credentials.accessToken)
-        //     }
-        //     else {
-        //         Alert.alert('Error. You are not authorized')
-        //     }
-        // })
-        // .catch((error) => {
-        //     Alert.alert('Error', error)
-        // })
         AsyncStorage.getItem('accessToken')
         .then((jsonAccessToken) => {
             const token = JSON.parse(jsonAccessToken)
